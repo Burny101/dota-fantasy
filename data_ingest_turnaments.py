@@ -5,6 +5,19 @@ import requests
 from tqdm import tqdm
 import time
 
+def read_turnament_ids_from_csv(file_path: str):
+	# Reads a CSV file containing tournament data and extracts turnament IDs.
+
+	if not os.path.exists(file_path):
+		raise FileNotFoundError(f"The file {file_path} does not exist.")
+	
+	df = pd.read_csv(file_path)
+	
+	if 'ID' not in df.columns:
+		raise ValueError("The CSV file must contain a 'ID' column.")
+
+	return df
+
 def read_match_ids_from_json(file_path: str):
 	with open(file_path, 'r') as file:
 		data = json.load(file)
@@ -32,11 +45,13 @@ def get_match_info(df_tournament: pd.DataFrame):
 def save_df_to_json(df_to_save: pd.DataFrame, filename: str):
 	df_to_save.to_json("data/json_saves_"+filename+".json", orient='records', lines=True)
 
+turnaments = read_turnament_ids_from_csv('data/tournaments/tournaments.csv')
+print(turnaments.head())
 
-df = read_match_ids_from_json('data/tournaments/matches_17795.json')
+# df = read_match_ids_from_json('data/tournaments/matches_17795.json')
 
-df2 = get_match_info(df)
-print(df2.head())
+# df2 = get_match_info(df)
+# print(df2.head())
 
 # save_df_to_json(df2, "match_info_17795")
 
