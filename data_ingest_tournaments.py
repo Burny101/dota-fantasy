@@ -69,11 +69,11 @@ def get_all_matches_from_tournaments(tournaments: pd.DataFrame):
 
 tournaments = read_tournament_ids_from_csv(file_path='data/turniere.csv')
 match_ids = get_all_matches_from_tournaments(tournaments)
-print(match_ids)
+#print(match_ids)
 big_df = get_match_info(match_ids)
 
 # Save all matches to a JSON file
 matches_path = "data/matches/"
 save_df_to_json(matches_path, big_df, "all_matches_from_tournaments")
 
-print("Script ran successfully")
+print("Script ran successfully!")
