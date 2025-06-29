@@ -5,18 +5,20 @@ import requests
 from tqdm import tqdm
 import time
 
-def read_turnament_ids_from_csv(file_path: str):
-	# Reads a CSV file containing tournament data and extracts turnament IDs.
+
+def read_tournament_ids_from_csv(file_path: str):
+	# Reads a CSV file containing tournament data and extracts tournament IDs.
 
 	if not os.path.exists(file_path):
 		raise FileNotFoundError(f"The file {file_path} does not exist.")
 	
-	df = pd.read_csv(file_path)
+	df = pd.read_csv(file_path, delimiter=';')
 	
 	if 'ID' not in df.columns:
 		raise ValueError("The CSV file must contain a 'ID' column.")
 
 	return df
+
 
 def read_match_ids_from_json(file_path: str):
 	with open(file_path, 'r') as file:
@@ -27,13 +29,13 @@ def read_match_ids_from_json(file_path: str):
 	df = pd.DataFrame(match_ids, columns=['match_id'])
 	return df
 
-def get_match_info(df_tournament: pd.DataFrame):
+
+def get_match_info(match_ids: list):
 	api_base_url = 'https://api.opendota.com/api/matches/'
 	df_matches = pd.DataFrame()
-	with tqdm(total=len(df_tournament)) as pbar:
-		for _, row in df_tournament.iterrows():
-			match_api_url = row['match_id']
-			response = requests.get(api_base_url + str(match_api_url))
+	with tqdm(total=len(match_ids)) as pbar:
+		for match_id in match_ids:
+			response = requests.get(api_base_url + str(match_id))
 			time.sleep(1)
 			if response.status_code == 200:
 				match_data = json.loads(response.text)
@@ -42,19 +44,31 @@ def get_match_info(df_tournament: pd.DataFrame):
 			pbar.update(1)
 	return df_matches
 
+
 def save_df_to_json(df_to_save: pd.DataFrame, filename: str):
 	df_to_save.to_json("data/json_saves_"+filename+".json", orient='records', lines=True)
 
-turnaments = read_turnament_ids_from_csv('data/tournaments/tournaments.csv')
-print(turnaments.head())
 
-# df = read_match_ids_from_json('data/tournaments/matches_17795.json')
+def get_all_matches_from_tournaments(tournaments: pd.DataFrame):
+	# create a JSON file with all the matches played in all the tournaments
+	
+	all_match_ids = []
+	for index, row in tqdm(tournaments.iterrows(), total=tournaments.shape[0]):
+		tournament_id = row['ID']
+		api_url = f'https://api.opendota.com/api/leagues/{tournament_id}/matches'
+		response = requests.get(api_url)
+		time.sleep(1)
+		if response.status_code == 200:
+			matches = json.loads(response.text)
+			match_ids = [match['match_id'] for match in matches]
+			all_match_ids.extend(match_ids)
+	return all_match_ids
+	
 
-# df2 = get_match_info(df)
-# print(df2.head())
-
-# save_df_to_json(df2, "match_info_17795")
-
-
+tournaments = read_tournament_ids_from_csv(file_path='data/turniere.csv')
+match_ids = get_all_matches_from_tournaments(tournaments)
+print(match_ids)
+big_df = get_match_info(match_ids)
+save_df_to_json(big_df, "all_matches_from_tournaments")
 
 print("Script ran successfully")
