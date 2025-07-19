@@ -36,7 +36,8 @@ def main():
         })
 
     output_filename = f"ratings_{sys.argv[1]}.json"
-    with open(output_filename, "w", encoding="utf-8") as f:
+    output_path = f"data/ratings/{output_filename}"
+    with open(output_path, "w", encoding="utf-8") as f:
         json.dump(filtered, f, ensure_ascii=False, indent=2)
 
     print(f"Data saved to {output_filename}")
