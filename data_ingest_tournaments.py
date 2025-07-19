@@ -62,14 +62,20 @@ def get_all_matches_from_tournaments(tournaments: pd.DataFrame):
 		start_date = row['Date First Game']
 		api_url = f'https://api.opendota.com/api/leagues/{tournament_id}/matches'
 		response = requests.get(api_url)
-		time.sleep(1)
-		if response.status_code == 200:
-			matches = json.loads(response.text)
-			for match in matches:
-				all_matches.append({
-					'match_id': match['match_id'],
-					'tournament_start_date': start_date
-				})
+		while True:
+			time.sleep(1)
+			response = requests.get(api_url)
+			if response.status_code == 200:
+				matches = json.loads(response.text)
+				for match in matches:
+					all_matches.append({
+						'match_id': match['match_id'],
+						'tournament_start_date': start_date
+					})
+				break
+			else:
+				print(f"API returned status code {response.status_code} for tournament {tournament_id}. Retrying in 5 seconds...")
+				time.sleep(5)
 	df_all_matches = pd.DataFrame(all_matches)
 	return df_all_matches
 	
