@@ -1,6 +1,7 @@
 import sys
 import requests
 import json
+import os
 
 def main():
     if len(sys.argv) != 2:
@@ -14,6 +15,13 @@ def main():
     except ValueError:
         print("Date must be in yyyy-mm-dd format.")
         sys.exit(1)
+
+    output_filename = f"ratings_{sys.argv[1]}.json"
+    output_path = f"data/ratings/{output_filename}"
+
+    if os.path.exists(output_path):
+        print(f"File {output_filename} already exists. Skipping API request.")
+        return
 
     url = f"https://datdota.com/api/ratings?date={date}"
 
@@ -35,8 +43,7 @@ def main():
             "glicko2_rating": entry.get("glicko2", {}).get("rating")
         })
 
-    output_filename = f"ratings_{sys.argv[1]}.json"
-    output_path = f"data/ratings/{output_filename}"
+
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(filtered, f, ensure_ascii=False, indent=2)
 
